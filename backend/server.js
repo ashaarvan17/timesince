@@ -12,6 +12,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get("/", (req, res) => {
+  res.send("🚀 TimeSince Backend is Running");
+});
+
 // ✅ Routes (define BEFORE DB connect is also fine)
 app.use("/api/timers", timerRoutes);
 
