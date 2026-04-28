@@ -130,20 +130,51 @@ router.put("/reset/:id", async (req, res) => {
       return res.status(404).json({ message: "Timer not found" });
     }
 
-    const now = new Date();
+    const now = Date.now();
 
-    // ✅ SAFE master start
-    const masterStart = timer.startTime
-      ? new Date(timer.startTime)
-      : now;
+// ✅ safe master start
+const masterStart = timer.startTime
+  ? new Date(timer.startTime).getTime()
+  : now;
 
-    // ✅ SAFE segment start
-    const segmentStart = timer.segmentStartTime
-      ? new Date(timer.segmentStartTime)
-      : masterStart;
+// 🚨 guard
+if (!masterStart || isNaN(masterStart)) {
+  return res.status(400).json({ message: "Invalid startTime" });
+}
 
-    const masterTime = now - masterStart;
-    const duration = now - segmentStart;
+// ✅ safe segment start
+let segmentStart;
+
+if (timer.segmentStartTime) {
+  segmentStart = new Date(timer.segmentStartTime).getTime();
+
+  if (isNaN(segmentStart)) {
+    segmentStart = masterStart;
+  }
+} else {
+  segmentStart = masterStart;
+}
+
+// ✅ calculations
+const masterTime = now - masterStart;
+const duration = now - segmentStart;
+
+// 🚨 final guard
+if (
+  isNaN(masterTime) ||
+  isNaN(duration) ||
+  duration < 0
+) {
+  console.log("❌ INVALID CALCULATION", {
+    masterStart,
+    segmentStart,
+    now
+  });
+
+  return res.status(400).json({
+    message: "Invalid time calculation"
+  });
+}
 
     // ✅ HARD VALIDATION
     if (
