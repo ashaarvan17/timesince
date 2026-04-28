@@ -10,9 +10,11 @@ const app = express();
 
 // ✅ Middleware
 app.use(cors({
-  origin: "https://timesince-liard.vercel.app"
+  origin: [
+    "https://timesince-liard.vercel.app",
+    "https://timesince-z5gg1nfsk-ashaarvan17s-projects.vercel.app"
+  ]
 }));
-app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("🚀 TimeSince Backend is Running");
