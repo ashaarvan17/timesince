@@ -10,10 +10,7 @@ const app = express();
 
 // ✅ Middleware
 app.use(cors({
-  origin: [
-    "https://timesince-liard.vercel.app",
-    "https://timesince-z5gg1nfsk-ashaarvan17s-projects.vercel.app"
-  ]
+  origin: "*"
 }));
 
 app.get("/", (req, res) => {
