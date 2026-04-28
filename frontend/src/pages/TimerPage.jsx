@@ -126,7 +126,7 @@ const stop = async () => {
         if (!confirmReset) return;
 
         await API.delete(`/${id}`);
-        navigate("/");
+        navigate("/dashboard");
       }
 
     } catch (err) {
