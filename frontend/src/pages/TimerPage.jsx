@@ -65,18 +65,26 @@ export default function TimerPage() {
   }, [isRunning]);
 
   // 🔥 SEGMENT TIMER (ONLY ONE)
-  useEffect(() => {
-    if (!isRunning || !timer?.segmentStartTime) return;
+const segmentStartRef = useRef(0);
 
-    const interval = setInterval(() => {
-      const now = Date.now();
-      const segStart = new Date(timer.segmentStartTime).getTime();
+useEffect(() => {
+  if (!timer) return;
 
-      setSegmentElapsed(now - segStart);
-    }, 1000);
+  if (timer.segmentStartTime) {
+    segmentStartRef.current = new Date(timer.segmentStartTime).getTime();
+  }
+}, [timer]);
 
-    return () => clearInterval(interval);
-  }, [isRunning, timer?.segmentStartTime]);
+useEffect(() => {
+  if (!isRunning) return;
+
+  const interval = setInterval(() => {
+    const now = Date.now();
+    setSegmentElapsed(now - segmentStartRef.current);
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, [isRunning]);
 
   // ▶ START
   const start = async () => {

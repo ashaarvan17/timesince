@@ -130,34 +130,49 @@ router.put("/reset/:id", async (req, res) => {
       return res.status(404).json({ message: "Timer not found" });
     }
 
-    const now = Date.now();
+    const now = new Date();
 
-    // 🔥 MASTER TIME
-    const masterStart = new Date(timer.startTime).getTime();
-    const masterTime = now - masterStart;
+    // ✅ SAFE master start
+    const masterStart = timer.startTime
+      ? new Date(timer.startTime)
+      : now;
 
-    // 🔥 SEGMENT TIME (fallback if null)
+    // ✅ SAFE segment start
     const segmentStart = timer.segmentStartTime
-      ? new Date(timer.segmentStartTime).getTime()
+      ? new Date(timer.segmentStartTime)
       : masterStart;
 
+    const masterTime = now - masterStart;
     const duration = now - segmentStart;
 
-    if (isNaN(duration) || duration < 0) {
-      return res.status(400).json({ message: "Invalid duration" });
+    // ✅ HARD VALIDATION
+    if (
+      isNaN(masterTime) ||
+      isNaN(duration) ||
+      duration < 0
+    ) {
+      console.log("❌ INVALID DATA", {
+        masterStart,
+        segmentStart,
+        now
+      });
+
+      return res.status(400).json({
+        message: "Invalid time calculation"
+      });
     }
 
     const log = await Log.create({
-      timerId: timer._id,
-      startTime: timer.startTime,
-      resetTime: new Date(),
+      timerId: timer._id, // ✅ correct (ObjectId)
+      startTime: masterStart,
+      resetTime: now,
       duration,
       masterTime,
       note
     });
 
-    // 🔥 restart segment
-    timer.segmentStartTime = new Date();
+    // restart segment
+    timer.segmentStartTime = now;
     await timer.save();
 
     res.json({
@@ -166,7 +181,7 @@ router.put("/reset/:id", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("RESET ERROR 👉", err);
+    console.error("🔥 RESET ERROR FULL:", err);
     res.status(500).json({ error: err.message });
   }
 });
